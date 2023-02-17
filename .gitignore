@@ -1,0 +1,5 @@
+/.vs
+/chat-gpt-api/obj
+/chat-gpt-api/bin
+/test/obj
+/test/bin
