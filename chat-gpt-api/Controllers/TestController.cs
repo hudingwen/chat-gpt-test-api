@@ -237,16 +237,10 @@ namespace chat_gpt_api.Controllers
         private async Task<GroupInfo> GetGroupInfo()
         {
             string result = string.Empty;
-            var sendJson = Newtonsoft.Json.JsonConvert.SerializeObject(userInfo);
-            using (HttpContent httpContent = new StringContent(sendJson))
-            {
-                httpContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                using var httpClient = new HttpClient();
-                httpClient.DefaultRequestHeaders.Add("Authorization", token);
-                //httpClient.Timeout = TimeSpan.FromSeconds(60);
-                result = await httpClient.PostAsync(wechatQQurl + "/get_group_info", httpContent).Result.Content.ReadAsStringAsync();
-                return Newtonsoft.Json.JsonConvert.DeserializeObject<GroupInfo>(result);
-            } 
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("Authorization", token);
+            result = await httpClient.GetAsync(wechatQQurl + $"/get_group_info?group_id={userInfo.group_id}").Result.Content.ReadAsStringAsync();
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<GroupInfo>(result);
         }
         /// <summary>
         /// 获取群成员信息
@@ -254,16 +248,11 @@ namespace chat_gpt_api.Controllers
         private async Task<GroupUserInfo> GetGroupUserInfo()
         {
             string result = string.Empty;
-            var sendJson = Newtonsoft.Json.JsonConvert.SerializeObject(userInfo);
-            using (HttpContent httpContent = new StringContent(sendJson))
-            {
-                httpContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                using var httpClient = new HttpClient();
-                httpClient.DefaultRequestHeaders.Add("Authorization", token);
-                //httpClient.Timeout = TimeSpan.FromSeconds(60);
-                result = await httpClient.PostAsync(wechatQQurl + "/get_group_member_info", httpContent).Result.Content.ReadAsStringAsync();
-                return Newtonsoft.Json.JsonConvert.DeserializeObject<GroupUserInfo>(result);
-            }  
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("Authorization", token);
+            //httpClient.Timeout = TimeSpan.FromSeconds(60);
+            result = await httpClient.GetAsync(wechatQQurl + $"/get_group_member_info?group_id={userInfo.group_id}&user_id={userInfo.user_id}").Result.Content.ReadAsStringAsync();
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<GroupUserInfo>(result);
         }
 
         private async Task<string> SendQQMessage(string sendMsg)
