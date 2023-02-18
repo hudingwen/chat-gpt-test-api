@@ -211,7 +211,7 @@ namespace chat_gpt_api.Controllers
                         CardInfo cardInfo = new CardInfo();
                         cardInfo.info = new UserMsg() { id = wechatAccountID, companyCode = wechatCompanyCode, userID = wechatUserID };
                         cardInfo.cardMsg = new CardMsg() { template_id = wechatTemplate };
-                        cardInfo.cardMsg.first = $"监控到群消息\n消息内容如下\n{info.message}\n来自群:{groupInfo.group_name}({groupInfo.group_id})\n来自人:{groupUserinfo.card}({groupUserinfo.user_id})";
+                        cardInfo.cardMsg.first = $"监控到群消息\n消息内容如下\n{info.message}\n来自群:{groupInfo.data.group_name}({groupInfo.data.group_id})\n来自人:{groupUserinfo.data.card}({groupUserinfo.data.user_id})";
                         var sendJson = Newtonsoft.Json.JsonConvert.SerializeObject(cardInfo);
                         using (HttpContent httpContent = new StringContent(sendJson))
                         {
