@@ -171,6 +171,10 @@ namespace chat_gpt_api.Controllers
                         });
                     }
                 }
+                else
+                {
+                    HandleOther();
+                }
             }
             catch (Exception e)
             {
@@ -183,6 +187,10 @@ namespace chat_gpt_api.Controllers
                 userInfo.isOk = true;
             }
 
+        }
+        private void HandleOther()
+        {
+            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(userInfo));
         }
 
         [Route("monitor")]
