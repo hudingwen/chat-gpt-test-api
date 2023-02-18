@@ -170,11 +170,12 @@ namespace chat_gpt_api.Controllers
                             SendQQMessage(sendMsg);
                         });
                     }
+                    else
+                    {
+                        HandleOther();
+                    }
                 }
-                else
-                {
-                    HandleOther();
-                }
+                
             }
             catch (Exception e)
             {
