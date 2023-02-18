@@ -240,6 +240,7 @@ namespace chat_gpt_api.Controllers
             using var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Add("Authorization", token);
             result = await httpClient.GetAsync(wechatQQurl + $"/get_group_info?group_id={userInfo.group_id}").Result.Content.ReadAsStringAsync();
+            Console.WriteLine(result);
             return Newtonsoft.Json.JsonConvert.DeserializeObject<GroupInfo>(result);
         }
         /// <summary>
@@ -252,6 +253,7 @@ namespace chat_gpt_api.Controllers
             httpClient.DefaultRequestHeaders.Add("Authorization", token);
             //httpClient.Timeout = TimeSpan.FromSeconds(60);
             result = await httpClient.GetAsync(wechatQQurl + $"/get_group_member_info?group_id={userInfo.group_id}&user_id={userInfo.user_id}").Result.Content.ReadAsStringAsync();
+            Console.WriteLine(result);
             return Newtonsoft.Json.JsonConvert.DeserializeObject<GroupUserInfo>(result);
         }
 
