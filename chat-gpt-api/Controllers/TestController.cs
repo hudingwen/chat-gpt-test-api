@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
 using System.Reflection.Emit;
 using System.Text.RegularExpressions;
+using System.Reflection.Metadata;
 
 namespace chat_gpt_api.Controllers
 {
@@ -193,21 +194,27 @@ namespace chat_gpt_api.Controllers
         private async void HandleOther()
         {
             //Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(userInfo));
+
+           
+        }
+        private async void HandleRedbag()
+        {
+            HandleRedbag();
             var matchStr = "\\[CQ:redbag.+?\\]"; ;
             Regex regex = new Regex(matchStr);
             Match match = regex.Match(userInfo.message);
-            if(match.Success)
+            if (match.Success)
             {
                 //有红包可抢
                 //延迟2秒,防止别人以为秒抢
                 Thread.Sleep(2000);
-                var res = await SendQQMessage(userInfo.message,false);
+                var res = await SendQQMessage(userInfo.message, false);
                 Console.WriteLine(userInfo.message);
                 Console.WriteLine(res);
 
             }
         }
-        
+
 
         [Route("monitor")]
         [HttpPost]
