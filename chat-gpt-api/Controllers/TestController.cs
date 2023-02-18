@@ -48,6 +48,8 @@ namespace chat_gpt_api.Controllers
                 wechatAccountID = configuration.GetValue<string>("wechatAccountID").ToString();//微信推送Code
                 wechatCompanyCode = configuration.GetValue<string>("wechatCompanyCode").ToString();//微信推送Code
                 wechatUserID = configuration.GetValue<string>("wechatUserID").ToString();//微信推送用户ID
+                wechatQQurl = configuration.GetValue<string>("wechatQQurl").ToString();//微信QQ推送地址
+                
 
             }
             catch (Exception ex)
@@ -75,6 +77,8 @@ namespace chat_gpt_api.Controllers
         private string wechatAccountID { get; set; }
         private string wechatCompanyCode { get; set; }
         private string wechatUserID { get; set; }
+        private string wechatQQurl { get; set; }
+        
 
 
 
@@ -240,7 +244,7 @@ namespace chat_gpt_api.Controllers
                 using var httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.Add("Authorization", token);
                 //httpClient.Timeout = TimeSpan.FromSeconds(60);
-                result = await httpClient.PostAsync(sendUrl + "/get_group_info", httpContent).Result.Content.ReadAsStringAsync();
+                result = await httpClient.PostAsync(wechatQQurl + "/get_group_info", httpContent).Result.Content.ReadAsStringAsync();
                 return Newtonsoft.Json.JsonConvert.DeserializeObject<GroupInfo>(result);
             } 
         }
@@ -257,7 +261,7 @@ namespace chat_gpt_api.Controllers
                 using var httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.Add("Authorization", token);
                 //httpClient.Timeout = TimeSpan.FromSeconds(60);
-                result = await httpClient.PostAsync(sendUrl + "/get_group_member_info", httpContent).Result.Content.ReadAsStringAsync();
+                result = await httpClient.PostAsync(wechatQQurl + "/get_group_member_info", httpContent).Result.Content.ReadAsStringAsync();
                 return Newtonsoft.Json.JsonConvert.DeserializeObject<GroupUserInfo>(result);
             }  
         }
