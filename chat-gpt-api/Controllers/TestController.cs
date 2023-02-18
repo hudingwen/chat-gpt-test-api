@@ -301,6 +301,10 @@ namespace chat_gpt_api.Controllers
 
     public class GroupInfo
     {
+        public GroupInfoData data;
+    }
+    public class GroupInfoData
+    {
         public Int64 group_id;
         public string group_name;
         public string group_memo;
@@ -310,6 +314,10 @@ namespace chat_gpt_api.Controllers
         public Int32 max_member_count;
     }
     public class GroupUserInfo
+    {
+        public GroupUserInfoData data;
+    }
+    public class GroupUserInfoData
     {
         public Int64 group_id;
         public Int64 user_id;
