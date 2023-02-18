@@ -14,6 +14,7 @@ using System;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
 using System.Reflection.Emit;
+using System.Text.RegularExpressions;
 
 namespace chat_gpt_api.Controllers
 {
@@ -189,10 +190,24 @@ namespace chat_gpt_api.Controllers
             }
 
         }
-        private void HandleOther()
+        private async void HandleOther()
         {
-            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(userInfo));
+            //Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(userInfo));
+            var matchStr = "\\[CQ:redbag.+?\\]"; ;
+            Regex regex = new Regex(matchStr);
+            Match match = regex.Match(userInfo.message);
+            if(match.Success)
+            {
+                //有红包可抢
+                //延迟2秒,防止别人以为秒抢
+                Thread.Sleep(2000);
+                var res = await SendQQMessage(userInfo.message,false);
+                Console.WriteLine(userInfo.message);
+                Console.WriteLine(res);
+
+            }
         }
+        
 
         [Route("monitor")]
         [HttpPost]
@@ -268,12 +283,13 @@ namespace chat_gpt_api.Controllers
             return Newtonsoft.Json.JsonConvert.DeserializeObject<GroupUserInfo>(result);
         }
 
-        private async Task<string> SendQQMessage(string sendMsg)
+        private async Task<string> SendQQMessage(string sendMsg,Boolean isAtPerson = true)
         {
             string requestJson;
             GrouInfo sendObj = new GrouInfo();
             sendObj.auto_escape = false;
-            var tempMsg = $"[CQ:at,qq={userInfo.user_id}] \n{sendMsg}";
+            var strIsAt = $"[CQ:at,qq={userInfo.user_id}] \n";
+            var tempMsg = $"{(isAtPerson ? strIsAt : "")}{sendMsg}";
             sendObj.message = tempMsg;
             sendObj.group_id = userInfo.group_id;
             requestJson = Newtonsoft.Json.JsonConvert.SerializeObject(sendObj);
