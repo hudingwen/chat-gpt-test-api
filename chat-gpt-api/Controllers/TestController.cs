@@ -201,6 +201,8 @@ namespace chat_gpt_api.Controllers
                 var ls = monitorKey.Split(",").ToList();
                 foreach (var item in ls)
                 {
+                    RegHelper regHelper = new RegHelper();
+                    info.message = regHelper.Start(info.message);
                     if (info.message.Contains(item))
                     {
                         Console.WriteLine(info.message);
@@ -211,7 +213,7 @@ namespace chat_gpt_api.Controllers
                         CardInfo cardInfo = new CardInfo();
                         cardInfo.info = new UserMsg() { id = wechatAccountID, companyCode = wechatCompanyCode, userID = wechatUserID };
                         cardInfo.cardMsg = new CardMsg() { template_id = wechatTemplate };
-                        cardInfo.cardMsg.first = $"监控到群消息\n消息内容如下\n{info.message}\n来自群:{groupInfo.data.group_name}({groupInfo.data.group_id})\n来自人:{groupUserinfo.data.card}({groupUserinfo.data.user_id})";
+                        cardInfo.cardMsg.first = $"监控关键词:{item}\n消息内容:\n{info.message}\n来自群:{groupInfo.data.group_name}({groupInfo.data.group_id})\n来自人:{groupUserinfo.data.card}({groupUserinfo.data.user_id})";
                         var sendJson = Newtonsoft.Json.JsonConvert.SerializeObject(cardInfo);
                         using (HttpContent httpContent = new StringContent(sendJson))
                         {
