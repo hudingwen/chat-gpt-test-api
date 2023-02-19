@@ -106,7 +106,12 @@ namespace chat_gpt_api.Controllers
                         Console.WriteLine("进入chatgpt");
                         Console.WriteLine(info.message);
                         var ls = info.raw_message.Split(new string[] { flag, " " }, StringSplitOptions.RemoveEmptyEntries);
+                        
                         string pro = string.Join(" ", ls);
+                        if (string.IsNullOrWhiteSpace(pro))
+                        {
+                            pro = "说点什么吧?";
+                        }
                         Console.WriteLine(pro);
 
                         var chatHttp = HttpClientFactory.Create();
