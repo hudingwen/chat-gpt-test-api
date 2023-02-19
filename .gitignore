@@ -3,3 +3,5 @@
 /chat-gpt-api/bin
 /test/obj
 /test/bin
+/chat-gpt-tool/bin
+/chat-gpt-tool/obj

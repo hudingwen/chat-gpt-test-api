@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33110.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "chat-gpt-test", "test\chat-gpt-test.csproj", "{F9672912-057A-4E70-B0E2-3C80B59F76A7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "chat-gpt-test", "test\chat-gpt-test.csproj", "{F9672912-057A-4E70-B0E2-3C80B59F76A7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "chat-gpt-api", "chat-gpt-api\chat-gpt-api.csproj", "{CCD6A516-4AB6-4841-869D-564E86B595A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "chat-gpt-api", "chat-gpt-api\chat-gpt-api.csproj", "{CCD6A516-4AB6-4841-869D-564E86B595A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "chat-gpt-tool", "chat-gpt-tool\chat-gpt-tool.csproj", "{57AFE2E0-7C3A-432B-9CAC-DF35F98FDE33}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{CCD6A516-4AB6-4841-869D-564E86B595A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CCD6A516-4AB6-4841-869D-564E86B595A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CCD6A516-4AB6-4841-869D-564E86B595A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57AFE2E0-7C3A-432B-9CAC-DF35F98FDE33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57AFE2E0-7C3A-432B-9CAC-DF35F98FDE33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57AFE2E0-7C3A-432B-9CAC-DF35F98FDE33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57AFE2E0-7C3A-432B-9CAC-DF35F98FDE33}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

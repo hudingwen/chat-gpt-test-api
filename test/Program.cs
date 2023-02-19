@@ -24,5 +24,19 @@
 //    Console.WriteLine("匹配失败");
 //}
 
+//var tstr = "??????\nq\nw\n?\ne\n1231123\ntttt";
+//var pstr = "^(\\?|\n|\\n|\\\n|\\\\n|q).+?";
+//RegHelper regHelper = new RegHelper();
+//var res = regHelper.Start(tstr, pstr, "");
 
- 
+var tstr = "??????\nq\nw\n?\ne\n1231123\ntttt";
+tstr =  RegHelper.ReplaceStartWith(tstr, '?');
+tstr = RegHelper.ReplaceStartWith(tstr, '\n');
+Console.WriteLine(tstr);
+
+
+//var tstr = "???\nwwww?q?q?1231123\ntttt";
+//var pstr = "^\\?+?";
+//RegHelper regHelper = new RegHelper();
+//var res = regHelper.Start(tstr, pstr, "");
+//Console.WriteLine(res);

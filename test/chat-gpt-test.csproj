@@ -11,4 +11,8 @@
     <PackageReference Include="Betalgo.OpenAI.GPT3" Version="6.6.7" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\chat-gpt-tool\chat-gpt-tool.csproj" />
+  </ItemGroup>
+
 </Project>

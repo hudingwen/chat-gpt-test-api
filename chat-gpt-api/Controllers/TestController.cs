@@ -64,7 +64,6 @@ namespace chat_gpt_api.Controllers
         private string qq { get; set; }
         private string OPENAPI_TOKEN { get; set; }
         private string sendUrl { get; set; }
-
         private string token { get; set; }
         private float temperature { get; set; }
         private float top { get; set; }
@@ -148,9 +147,18 @@ namespace chat_gpt_api.Controllers
                         if (res.Successful)
                         {
                             sendMsg = res.Choices?.FirstOrDefault()?.Text;
-                            if (string.IsNullOrWhiteSpace(sendMsg) && sendMsg.IndexOf("\n\n") == 0)
+                            //if(sendMsg != null)
+                            //{
+
+                            //    if (sendMsg.IndexOf("\n\n") == 0)
+                            //    {
+                            //        sendMsg = sendMsg.Substring(2, sendMsg.Length - 2);
+                            //    }
+                            //}
+                            if(sendMsg != null)
                             {
-                                sendMsg = sendMsg.Substring(2, sendMsg.Length - 2);
+                                sendMsg = RegHelper.ReplaceStartWith(sendMsg, '?');
+                                sendMsg = RegHelper.ReplaceStartWith(sendMsg, '\n');
                             }
 
                         }

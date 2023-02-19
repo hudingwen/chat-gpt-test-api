@@ -9,17 +9,30 @@ using System.Threading.Tasks;
 
 public class RegHelper
 {
-
-
-    public string Start(string tStr = "abcdefgab[CQ:at,qq=114514]早上[CQ:at,qq=114514]好啊cdeega[CQ:at,qq=114514]bcdffg")
+    public static string ReplaceStartWith(string tStr, char pStr)
     {
-        string pStr = "\\[CQ:.+?\\]";
-        string rStr = " ";
+        if (tStr.StartsWith(pStr))
+        {
+            tStr =  tStr.Substring(1, tStr.Length - 1);
+            if (tStr.StartsWith(pStr))
+            {
+                return ReplaceStartWith(tStr, pStr);
+            }
+            else
+            {
+                return tStr;
+            }
+        }
+        else
+        {
+            return tStr;
+        }
+    }
 
+    public string Start(string tStr,string pStr= "\\[CQ:.+?\\]",string rStr=" ")
+    {
         string nStr = ReplaceMatchingStr(tStr, pStr, rStr, true);  
         return nStr;
-        //Console.WriteLine(nStr);
-        //输出结果: "abc****abc****abc****"
     }
 
     public string ReplaceMatchingStr(string targetStr, string patternStr, string replaceStr, bool isRecursion = true)
