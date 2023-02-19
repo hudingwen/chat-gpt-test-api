@@ -114,10 +114,15 @@ namespace chat_gpt_api.Controllers
                         chatHttp.Timeout = TimeSpan.FromSeconds(1000); //设置超时1000秒
                         OpenAIService service = new OpenAIService(new OpenAiOptions() { ApiKey = OPENAPI_TOKEN }, chatHttp);
 
+
+                        Random ran = new Random();
+                        var tempRandom = Convert.ToSingle(ran.NextDouble());
+                        if (!temperature.Equals(-1))
+                            tempRandom = temperature;
                         CompletionCreateRequest createRequest = new CompletionCreateRequest()
                         {
                             Prompt = pro,
-                            Temperature = temperature,
+                            Temperature = tempRandom,
                             TopP = top,
                             MaxTokens = maxToken,
                         };
