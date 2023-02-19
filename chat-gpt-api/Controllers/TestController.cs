@@ -42,7 +42,6 @@ namespace chat_gpt_api.Controllers
                 maxToken = configuration.GetValue<int>("maxToken");//最大消耗
 
                 //QQ关键词监控
-
                 monitorKey = configuration.GetValue<string>("monitorKey").ToString();//监控关键词
                 monitorGroup = configuration.GetValue<string>("monitorGroup").ToString();//监控关键词
                 wechatPushUrl = configuration.GetValue<string>("wechatPushUrl").ToString();//微信推送地址
@@ -72,6 +71,7 @@ namespace chat_gpt_api.Controllers
         private int maxToken { get; set; }
 
 
+
         private string monitorKey { get; set; }
         private string monitorGroup { get; set; }
         private string wechatPushUrl { get; set; }
@@ -87,9 +87,9 @@ namespace chat_gpt_api.Controllers
 
         private Info userInfo { get; set; }
         /// <summary>
-        /// 测试接口
+        /// 处理ChatGPT消息
         /// </summary>
-        /// <returns></returns>
+        /// <param name="info"></param>
         [Route("test")]
         [HttpPost]
         public async void Test([FromBody] Info info)
@@ -125,10 +125,7 @@ namespace chat_gpt_api.Controllers
                         try
                         {
                             info.isOk = false;
-                            Task.Run(() =>
-                            {
-                                CheckTask(pro);
-                            });
+                            Task.Run(() => { CheckTask(pro); });
                             res = await service.Completions.CreateCompletion(createRequest, Models.TextDavinciV3);
                         }
                         catch (Exception)
@@ -155,26 +152,23 @@ namespace chat_gpt_api.Controllers
                         else
                         {
                             //查询失败 
-                            if ("server_error".Equals(res.Error.Type))
+                            if ("server_error".Equals(res.Error?.Type))
                             {
                                 sendMsg = "ChatGPT服务器繁忙,请稍后再试!";
                             }
                             else
                             {
-                                sendMsg = $"ChatGPT服务器繁忙,Type:{res.Error.Type},Code:{res.Error.Code},Message:{res.Error.Message}";
+                                sendMsg = $"ChatGPT服务器繁忙,Type:{res.Error?.Type},Code:{res.Error?.Code},Message:{res.Error?.Message}";
                             }
 
                         }
                         Console.WriteLine(sendMsg);
                         //推送QQ消息
-                        Task.Run(() =>
-                        {
-                            SendQQMessage(sendMsg);
-                        });
+                        Task.Run(() => { SendQQMessage(sendMsg); });
                     }
                     else
                     {
-                        HandleOther();
+                        Task.Run(() => { HandleOther(); });
                     }
                 }
                 
@@ -191,15 +185,24 @@ namespace chat_gpt_api.Controllers
             }
 
         }
-        private async void HandleOther()
+        /// <summary>
+        /// 处理其他事件
+        /// </summary>
+        /// <returns></returns>
+        private async Task HandleOther()
         {
             //Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(userInfo));
 
-           
+            //处理红包
+            Task.Run(() => { HandleRedbag(); });
+
         }
-        private async void HandleRedbag()
+        /// <summary>
+        /// 处理红包事件
+        /// </summary>
+        /// <returns></returns>
+        private async Task HandleRedbag()
         {
-            HandleRedbag();
             var matchStr = "\\[CQ:redbag.+?\\]"; ;
             Regex regex = new Regex(matchStr);
             Match match = regex.Match(userInfo.message);
@@ -208,14 +211,19 @@ namespace chat_gpt_api.Controllers
                 //有红包可抢
                 //延迟2秒,防止别人以为秒抢
                 Thread.Sleep(2000);
-                var res = await SendQQMessage(userInfo.message, false);
+              
                 Console.WriteLine(userInfo.message);
-                Console.WriteLine(res);
+                //var res = await SendQQMessage(userInfo.message, false);
+                //Console.WriteLine(res);
 
+                //推送卡片消息
+                await SendWechaMsg("红包", userInfo.message);
             }
         }
-
-
+        /// <summary>
+        /// 监控需要的关键词
+        /// </summary>
+        /// <param name="info"></param>
         [Route("monitor")]
         [HttpPost]
         public async void Monitor([FromBody] Info info)
@@ -238,21 +246,7 @@ namespace chat_gpt_api.Controllers
                     {
                         Console.WriteLine(info.message);
                         //推送卡片消息
-                        var groupInfo = await GetGroupInfo();
-                        var groupUserinfo = await GetGroupUserInfo();
-
-                        CardInfo cardInfo = new CardInfo();
-                        cardInfo.info = new UserMsg() { id = wechatAccountID, companyCode = wechatCompanyCode, userID = wechatUserID };
-                        cardInfo.cardMsg = new CardMsg() { template_id = wechatTemplate };
-                        cardInfo.cardMsg.first = $"监控关键词:{item}\n消息内容:\n{info.message}\n来自群:{groupInfo.data.group_name}({groupInfo.data.group_id})\n来自人:{groupUserinfo.data.card}({groupUserinfo.data.user_id})";
-                        var sendJson = Newtonsoft.Json.JsonConvert.SerializeObject(cardInfo);
-                        using (HttpContent httpContent = new StringContent(sendJson))
-                        {
-                            httpContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                            using var httpClient = new HttpClient();
-                            var res = await httpClient.PostAsync(wechatPushUrl, httpContent).Result.Content.ReadAsStringAsync();
-                            Console.WriteLine(res);
-                        }
+                        await SendWechaMsg(item, info.message);
                         return;
                     }
                 }
@@ -262,6 +256,31 @@ namespace chat_gpt_api.Controllers
                 Console.WriteLine("系统异常");
                 Console.WriteLine(e.Message);
                 Console.WriteLine(e.StackTrace);
+            }
+        }
+        /// <summary>
+        /// 发送微信卡片消息
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+
+        public async Task SendWechaMsg(string key,string msg)
+        {
+            var groupInfo = await GetGroupInfo();
+            var groupUserinfo = await GetGroupUserInfo();
+
+            CardInfo cardInfo = new CardInfo();
+            cardInfo.info = new UserMsg() { id = wechatAccountID, companyCode = wechatCompanyCode, userID = wechatUserID };
+            cardInfo.cardMsg = new CardMsg() { template_id = wechatTemplate };
+            cardInfo.cardMsg.first = $"监控关键词:{key}\n消息内容:\n{msg}\n来自群:{groupInfo.data.group_name}({groupInfo.data.group_id})\n来自人:{groupUserinfo.data.card}({groupUserinfo.data.user_id})";
+            var sendJson = Newtonsoft.Json.JsonConvert.SerializeObject(cardInfo);
+            using (HttpContent httpContent = new StringContent(sendJson))
+            {
+                httpContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                using var httpClient = new HttpClient();
+                var res = await httpClient.PostAsync(wechatPushUrl, httpContent).Result.Content.ReadAsStringAsync();
+                Console.WriteLine(res);
             }
         }
         /// <summary>
@@ -289,6 +308,12 @@ namespace chat_gpt_api.Controllers
             Console.WriteLine(result);
             return Newtonsoft.Json.JsonConvert.DeserializeObject<GroupUserInfo>(result);
         }
+        /// <summary>
+        /// 发送QQ消息
+        /// </summary>
+        /// <param name="sendMsg"></param>
+        /// <param name="isAtPerson"></param>
+        /// <returns></returns>
 
         private async Task<string> SendQQMessage(string sendMsg,Boolean isAtPerson = true)
         {
@@ -313,6 +338,11 @@ namespace chat_gpt_api.Controllers
             Console.WriteLine(result);
             return result;
         }
+        /// <summary>
+        /// 任务检测
+        /// </summary>
+        /// <param name="pro"></param>
+        /// <returns></returns>
 
         private async Task<bool> CheckTask(string pro)
         {
