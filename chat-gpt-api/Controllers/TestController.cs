@@ -104,13 +104,31 @@ namespace chat_gpt_api.Controllers
                     {
                         memoryCache.Set(info.message_id, true);
                         Console.WriteLine("进入chatgpt");
+                        //获取随机数
+                        Random ran = new Random();
+                        var tempRandom = Convert.ToSingle(ran.NextDouble());
+                        if (!temperature.Equals(-1))
+                            tempRandom = temperature;
                         Console.WriteLine(info.message);
-                        var ls = info.raw_message.Split(new string[] { flag, " " }, StringSplitOptions.RemoveEmptyEntries);
-                        
+                        var ls = info.raw_message.Split(new string[] { flag, " ","|" }, StringSplitOptions.RemoveEmptyEntries);
+                        if (ls.Length > 0 && ls.Length>1)
+                        {
+                            float userTemp = 0;
+                            if(float.TryParse(ls[0], out userTemp))
+                            {
+                                if (userTemp>=0 && userTemp<=0)
+                                {
+                                    tempRandom = userTemp;
+                                }
+                                
+                            }
+                        }
                         string pro = string.Join(" ", ls);
+                        bool isEmpty = false;
                         if (string.IsNullOrWhiteSpace(pro))
                         {
                             pro = "说点什么吧?";
+                            isEmpty = true;
                         }
                         Console.WriteLine(pro);
 
@@ -119,10 +137,7 @@ namespace chat_gpt_api.Controllers
                         OpenAIService service = new OpenAIService(new OpenAiOptions() { ApiKey = OPENAPI_TOKEN }, chatHttp);
 
 
-                        Random ran = new Random();
-                        var tempRandom = Convert.ToSingle(ran.NextDouble());
-                        if (!temperature.Equals(-1))
-                            tempRandom = temperature;
+                        
                         CompletionCreateRequest createRequest = new CompletionCreateRequest()
                         {
                             Prompt = pro,
@@ -164,6 +179,10 @@ namespace chat_gpt_api.Controllers
                             {
                                 sendMsg = RegHelper.ReplaceStartWith(sendMsg, '?');
                                 sendMsg = RegHelper.ReplaceStartWith(sendMsg, '\n');
+                            }
+                            if (isEmpty)
+                            {
+                                sendMsg = $"{sendMsg}\n你可以在结尾设置温度0~1之间的任意数，例如：|0或|1\n温度是一个超参数，它控制生成的文本的多样性和创造性。\n0表示几乎确定，1表示很多可能性";
                             }
 
                         }
