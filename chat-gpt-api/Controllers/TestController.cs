@@ -145,19 +145,29 @@ namespace chat_gpt_api.Controllers
                             TopP = top,
                             MaxTokens = maxToken,
                         };
-                        CompletionCreateResponse res;
+                        //CompletionCreateResponse res;
+                        ChatCompletionCreateResponse res = new ChatCompletionCreateResponse();
 
-                        
 
                         try
                         {
                             info.isOk = false;
                             Task.Run(() => { CheckTask(pro); });
-                            res = await openAiService.Completions.CreateCompletion(createRequest);
+                            //res = await openAiService.Completions.CreateCompletion(createRequest);
+
+
+                            var msgs = new List<ChatMessage>();
+                            msgs.Add(ChatMessage.FromUser(pro));
+                            res = await openAiService.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest
+                            {
+                                Messages = msgs,
+                                Model = Models.ChatGpt3_5Turbo,
+                                MaxTokens = maxToken
+                            });
                         }
                         catch (Exception)
                         {
-                            res = new CompletionCreateResponse();
+                            //res = new CompletionCreateResponse();
                             res.Error = new Error();
                             res.Error.Type = "server_error";
                         }
@@ -169,8 +179,9 @@ namespace chat_gpt_api.Controllers
                         var sendMsg = string.Empty;
                         if (res.Successful)
                         {
-                            sendMsg = res.Choices?.FirstOrDefault()?.Text;
-                            if(sendMsg != null)
+                            //sendMsg = res.Choices?.FirstOrDefault()?.Text;
+                            sendMsg = res.Choices.First().Message.Content;
+                            if (sendMsg != null)
                             {
                                 sendMsg = RegHelper.ReplaceStartWith(sendMsg, '?');
                                 sendMsg = RegHelper.ReplaceStartWith(sendMsg, '\n');
