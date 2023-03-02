@@ -131,11 +131,46 @@ namespace chat_gpt_api.Controllers
                             isEmpty = true;
                         }
                         Console.WriteLine(pro);
+                        var msgs = new List<ChatMessage>();
+                        var chatKey = $"{info.group_id}-{info.user_id}";
+
+                        if ("开启对话模式".Equals(pro) && memoryCache.TryGetValue<List<ChatMessage>>(chatKey, out msgs) && msgs != null)
+                        {
+                            Task.Run(() => { SendQQMessage("当前已经开启对话模式,无需重复开启"); });
+                            return;
+                        }
+                        if(memoryCache.TryGetValue<List<ChatMessage>>(chatKey, out msgs) && msgs != null)
+                        {
+                            if(msgs == null) { msgs = new List<ChatMessage>();}
+                            msgs.Add(ChatMessage.FromUser(pro));
+                        }
+                        else
+                        {
+                            msgs = new List<ChatMessage>();
+                            msgs.Add(ChatMessage.FromUser(pro));
+
+                        }
+
+                        if ("开启对话模式".Equals(pro))
+                        {
+                            memoryCache.Set(chatKey, msgs, TimeSpan.FromMinutes(60));//60分钟后过期
+                            Task.Run(() => { SendQQMessage("已为您开启对话模式,请开始畅所欲言吧,对话有效时间60分钟"); });
+                            return;
+                        }
+                        if ("关闭对话模式".Equals(pro))
+                        {
+                            memoryCache.Remove(chatKey);
+                            Task.Run(() => { SendQQMessage("已为您关闭对话模式"); });
+                            return;
+                        }
+
+                        
+
 
                         var chatHttp = HttpClientFactory.Create();
                         chatHttp.Timeout = TimeSpan.FromSeconds(1000); //设置超时1000秒
                         OpenAIService openAiService = new OpenAIService(new OpenAiOptions() { ApiKey = OPENAPI_TOKEN }, chatHttp);
-                        openAiService.SetDefaultModelId(Models.TextDavinciV3);
+                        //openAiService.SetDefaultModelId(Models.TextDavinciV3);
 
 
                         CompletionCreateRequest createRequest = new CompletionCreateRequest()
@@ -156,8 +191,7 @@ namespace chat_gpt_api.Controllers
                             //res = await openAiService.Completions.CreateCompletion(createRequest);
 
 
-                            var msgs = new List<ChatMessage>();
-                            msgs.Add(ChatMessage.FromUser(pro));
+                            
                             res = await openAiService.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest
                             {
                                 Messages = msgs,
@@ -188,7 +222,7 @@ namespace chat_gpt_api.Controllers
                             }
                             if (isEmpty)
                             {
-                                sendMsg = $"{sendMsg}\n你可以在结尾设置温度0~1之间的任意数，例如：|0或|1\n温度是一个超参数，它控制生成的文本的多样性和创造性。\n0表示几乎确定，1表示很多可能性";
+                                sendMsg = $"{sendMsg}\n温馨提示:\n你可以@我回复【开启对话模式】,我将为您开启ChatGPT对话模式";
                             }
 
                         }
