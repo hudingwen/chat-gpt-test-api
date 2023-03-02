@@ -134,10 +134,10 @@ namespace chat_gpt_api.Controllers
 
                         var chatHttp = HttpClientFactory.Create();
                         chatHttp.Timeout = TimeSpan.FromSeconds(1000); //设置超时1000秒
-                        OpenAIService service = new OpenAIService(new OpenAiOptions() { ApiKey = OPENAPI_TOKEN }, chatHttp);
+                        OpenAIService openAiService = new OpenAIService(new OpenAiOptions() { ApiKey = OPENAPI_TOKEN }, chatHttp);
+                        openAiService.SetDefaultModelId(Models.TextDavinciV3);
 
 
-                        
                         CompletionCreateRequest createRequest = new CompletionCreateRequest()
                         {
                             Prompt = pro,
@@ -153,7 +153,7 @@ namespace chat_gpt_api.Controllers
                         {
                             info.isOk = false;
                             Task.Run(() => { CheckTask(pro); });
-                            res = await service.Completions.CreateCompletion(createRequest, Models.ChatGpt3_5Turbo0301);
+                            res = await openAiService.Completions.CreateCompletion(createRequest);
                         }
                         catch (Exception)
                         {
@@ -170,14 +170,6 @@ namespace chat_gpt_api.Controllers
                         if (res.Successful)
                         {
                             sendMsg = res.Choices?.FirstOrDefault()?.Text;
-                            //if(sendMsg != null)
-                            //{
-
-                            //    if (sendMsg.IndexOf("\n\n") == 0)
-                            //    {
-                            //        sendMsg = sendMsg.Substring(2, sendMsg.Length - 2);
-                            //    }
-                            //}
                             if(sendMsg != null)
                             {
                                 sendMsg = RegHelper.ReplaceStartWith(sendMsg, '?');
