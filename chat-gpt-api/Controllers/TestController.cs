@@ -146,11 +146,14 @@ namespace chat_gpt_api.Controllers
                             MaxTokens = maxToken,
                         };
                         CompletionCreateResponse res;
+
+                        
+
                         try
                         {
                             info.isOk = false;
                             Task.Run(() => { CheckTask(pro); });
-                            res = await service.Completions.CreateCompletion(createRequest, Models.ChatGpt3_5Turbo);
+                            res = await service.Completions.CreateCompletion(createRequest, Models.ChatGpt3_5Turbo0301);
                         }
                         catch (Exception)
                         {
