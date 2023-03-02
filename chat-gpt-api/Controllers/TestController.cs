@@ -150,7 +150,7 @@ namespace chat_gpt_api.Controllers
                         {
                             info.isOk = false;
                             Task.Run(() => { CheckTask(pro); });
-                            res = await service.Completions.CreateCompletion(createRequest, Models.ChatGpt3_5Turbo0301);
+                            res = await service.Completions.CreateCompletion(createRequest, Models.ChatGpt3_5Turbo);
                         }
                         catch (Exception)
                         {
