@@ -153,7 +153,14 @@ namespace chat_gpt_api.Controllers
 
                         if ("开启对话模式".Equals(pro))
                         {
-                            memoryCache.Set(chatKey, msgs, TimeSpan.FromMinutes(60));//60分钟后过期
+                            if(765472804.Equals(info.user_id))
+                            {
+                                memoryCache.Set(chatKey, msgs);//60分钟后过期
+                            }
+                            else
+                            {
+                                memoryCache.Set(chatKey, msgs, TimeSpan.FromMinutes(60));//60分钟后过期
+                            }
                             Task.Run(() => { SendQQMessage("已为您开启对话模式,请开始畅所欲言吧,对话有效时间60分钟"); });
                             return;
                         }
