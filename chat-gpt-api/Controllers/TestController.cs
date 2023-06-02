@@ -1,12 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using OpenAI.GPT3.Managers;
-using OpenAI.GPT3.ObjectModels.RequestModels;
-using OpenAI.GPT3.ObjectModels;
-using OpenAI.GPT3;
+using Microsoft.AspNetCore.Mvc; 
 using System.Collections.Generic;
-using System.Net.Http.Headers;
-using OpenAI.GPT3.ObjectModels.ResponseModels;
+using System.Net.Http.Headers; 
 using System.Net.Http;
 using Microsoft.Extensions.Caching.Memory;
 using System.Linq;
@@ -16,6 +11,12 @@ using System.Data;
 using System.Reflection.Emit;
 using System.Text.RegularExpressions;
 using System.Reflection.Metadata;
+using OpenAI.ObjectModels.RequestModels;
+using OpenAI.Managers;
+using OpenAI;
+using OpenAI.ObjectModels.ResponseModels;
+using OpenAI.ObjectModels;
+using static Microsoft.Extensions.Logging.EventSource.LoggingEventSource;
 
 namespace chat_gpt_api.Controllers
 {
@@ -34,6 +35,7 @@ namespace chat_gpt_api.Controllers
                 memoryCache = _memoryCache;
                 qq = configuration.GetValue<string>("qq").ToString();//你的QQ机器人
                 OPENAPI_TOKEN = configuration.GetValue<string>("key").ToString();//输入自己的api-key
+                keyword = configuration.GetValue<string>("keyword").ToString();//角色扮演
                 sendUrl = configuration.GetValue<string>("url").ToString();//QQ推送地址
                 token = configuration.GetValue<string>("token").ToString();//QQ推送地址token
 
@@ -68,6 +70,7 @@ namespace chat_gpt_api.Controllers
         private float temperature { get; set; }
         private float top { get; set; }
         private int maxToken { get; set; }
+        private string keyword { get; set; }
 
 
 
@@ -104,111 +107,60 @@ namespace chat_gpt_api.Controllers
                     {
                         memoryCache.Set(info.message_id, true);
                         Console.WriteLine("进入chatgpt");
-                        //获取随机数
-                        Random ran = new Random();
-                        var tempRandom = Convert.ToSingle(ran.NextDouble());
-                        if (!temperature.Equals(-1))
-                            tempRandom = temperature;
-                        Console.WriteLine(info.message);
-                        var ls = info.raw_message.Split(new string[] { flag, " ","|" }, StringSplitOptions.RemoveEmptyEntries);
-                        if (ls.Length > 0 && ls.Length>1)
-                        {
-                            float userTemp = 0;
-                            if(float.TryParse(ls[0], out userTemp))
-                            {
-                                if (userTemp>=0 && userTemp<=0)
-                                {
-                                    tempRandom = userTemp;
-                                }
-                                
-                            }
-                        }
-                        string pro = string.Join(" ", ls);
-                        bool isEmpty = false;
+                        var ls = info.raw_message.Split(new string[] { flag}, StringSplitOptions.RemoveEmptyEntries);
+                        string pro = string.Join("", ls).Trim();
+                        
                         if (string.IsNullOrWhiteSpace(pro))
                         {
-                            pro = "说点什么吧?";
-                            isEmpty = true;
+                            pro = "你好!";
                         }
                         Console.WriteLine(pro);
                         var msgs = new List<ChatMessage>();
+                       
                         var chatKey = $"{info.group_id}-{info.user_id}";
 
-                        if ("开启对话模式".Equals(pro) && memoryCache.TryGetValue<List<ChatMessage>>(chatKey, out msgs) && msgs != null)
+
+                        List<ChatMessage> content;
+                        if(memoryCache.TryGetValue<List<ChatMessage>>(chatKey, out content))
                         {
-                            Task.Run(() => { SendQQMessage("当前已经开启对话模式,无需重复开启"); });
-                            return;
-                        }
-                        if(memoryCache.TryGetValue<List<ChatMessage>>(chatKey, out msgs) && msgs != null)
-                        {
-                            if(msgs == null) { msgs = new List<ChatMessage>();}
-                            msgs.Add(ChatMessage.FromUser(pro));
+                            if (content.Count > 11)
+                            {
+                                //保留最近10次对话
+                                content.RemoveRange(1, content.Count - 11);
+                            }
                         }
                         else
                         {
-                            msgs = new List<ChatMessage>();
-                            msgs.Add(ChatMessage.FromUser(pro));
+                            msgs.Add(ChatMessage.FromSystem(keyword)); 
 
                         }
-
-                        if ("开启对话模式".Equals(pro))
-                        {
-                            if(765472804.Equals(info.user_id))
-                            {
-                                memoryCache.Set(chatKey, msgs);//60分钟后过期
-                            }
-                            else
-                            {
-                                memoryCache.Set(chatKey, msgs, TimeSpan.FromMinutes(60));//60分钟后过期
-                            }
-                            Task.Run(() => { SendQQMessage("已为您开启对话模式,请开始畅所欲言吧,对话有效时间60分钟"); });
-                            return;
-                        }
-                        if ("关闭对话模式".Equals(pro))
-                        {
-                            memoryCache.Remove(chatKey);
-                            Task.Run(() => { SendQQMessage("已为您关闭对话模式"); });
-                            return;
-                        }
-
-                        
+                        msgs.Add(ChatMessage.FromUser(pro));
+                        memoryCache.Set(chatKey, msgs, TimeSpan.FromMinutes(60));//60分钟后过期
 
 
-                        var chatHttp = HttpClientFactory.Create();
+
+
+                        var chatHttp = new HttpClient();
                         chatHttp.Timeout = TimeSpan.FromSeconds(1000); //设置超时1000秒
                         OpenAIService openAiService = new OpenAIService(new OpenAiOptions() { ApiKey = OPENAPI_TOKEN }, chatHttp);
-                        //openAiService.SetDefaultModelId(Models.TextDavinciV3);
 
-
-                        CompletionCreateRequest createRequest = new CompletionCreateRequest()
-                        {
-                            Prompt = pro,
-                            Temperature = tempRandom,
-                            TopP = top,
-                            MaxTokens = maxToken,
-                        };
-                        //CompletionCreateResponse res;
-                        ChatCompletionCreateResponse res = new ChatCompletionCreateResponse();
-
-
+                        ChatCompletionCreateResponse res;
                         try
                         {
                             info.isOk = false;
                             Task.Run(() => { CheckTask(pro); });
-                            //res = await openAiService.Completions.CreateCompletion(createRequest);
-
-
                             
                             res = await openAiService.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest
                             {
                                 Messages = msgs,
                                 Model = Models.ChatGpt3_5Turbo,
-                                MaxTokens = maxToken
+                                MaxTokens = maxToken,
+                                Temperature = temperature
                             });
                         }
                         catch (Exception)
                         {
-                            //res = new CompletionCreateResponse();
+                            res = new ChatCompletionCreateResponse();
                             res.Error = new Error();
                             res.Error.Type = "server_error";
                         }
@@ -226,10 +178,6 @@ namespace chat_gpt_api.Controllers
                             {
                                 sendMsg = RegHelper.ReplaceStartWith(sendMsg, '?');
                                 sendMsg = RegHelper.ReplaceStartWith(sendMsg, '\n');
-                            }
-                            if (isEmpty)
-                            {
-                                sendMsg = $"{sendMsg}\n温馨提示:\n你可以@我回复【开启对话模式】,我将为您开启ChatGPT对话模式";
                             }
 
                         }
