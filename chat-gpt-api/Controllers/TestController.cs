@@ -17,6 +17,7 @@ using OpenAI;
 using OpenAI.ObjectModels.ResponseModels;
 using OpenAI.ObjectModels;
 using static Microsoft.Extensions.Logging.EventSource.LoggingEventSource;
+using Newtonsoft.Json;
 
 namespace chat_gpt_api.Controllers
 {
@@ -98,6 +99,7 @@ namespace chat_gpt_api.Controllers
         {
             try
             {
+                Console.WriteLine($"收到消息:\r\n{JsonConvert.SerializeObject(info)}");
                 userInfo = info;
                 if ("group" == info.message_type)
                 {
@@ -194,13 +196,13 @@ namespace chat_gpt_api.Controllers
                             }
 
                         }
-                        Console.WriteLine(sendMsg);
+                        Console.WriteLine($"返回消息:\r\n{sendMsg}");
                         //推送QQ消息
-                        Task.Run(() => { SendQQMessage(sendMsg); });
+                        await Task.Run(async () => { await SendQQMessage(sendMsg); });
                     }
                     else
                     {
-                        Task.Run(() => { HandleOther(); });
+                        await Task.Run(async () => { await HandleOther(); });
                     }
                 }
                 
@@ -297,7 +299,7 @@ namespace chat_gpt_api.Controllers
         /// <param name="msg"></param>
         /// <returns></returns>
 
-        public async Task SendWechaMsg(string key,string msg)
+        private async Task SendWechaMsg(string key,string msg)
         {
             var groupInfo = await GetGroupInfo();
             var groupUserinfo = await GetGroupUserInfo();
