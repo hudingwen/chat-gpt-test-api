@@ -1,4 +1,6 @@
+using Newtonsoft.Json;
 
+Console.WriteLine($"web≥Ã–Ú∆Ù∂Ø÷–...");
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
