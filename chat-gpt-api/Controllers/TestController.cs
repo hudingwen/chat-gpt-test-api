@@ -116,8 +116,7 @@ namespace chat_gpt_api.Controllers
                         {
                             pro = "你好!";
                         }
-                        Console.WriteLine(pro);
-                        var msgs = new List<ChatMessage>();
+                        Console.WriteLine(pro); 
                        
                         var chatKey = $"{info.group_id}-{info.user_id}";
 
@@ -125,19 +124,19 @@ namespace chat_gpt_api.Controllers
                         List<ChatMessage> content;
                         if(memoryCache.TryGetValue<List<ChatMessage>>(chatKey, out content))
                         {
-                            if (content.Count > 11)
-                            {
-                                //保留最近10次对话
-                                content.RemoveRange(1, content.Count - 11);
-                            }
+                            //添加用户回答
+                            content.Add(ChatMessage.FromUser(pro));
                         }
                         else
                         {
-                            msgs.Add(ChatMessage.FromSystem(keyword)); 
-
+                            //系统角色初始化
+                            content = new List<ChatMessage>
+                            {
+                                ChatMessage.FromSystem(keyword)
+                            };
                         }
-                        msgs.Add(ChatMessage.FromUser(pro));
-                        memoryCache.Set(chatKey, msgs, TimeSpan.FromMinutes(60));//60分钟后过期
+
+                        memoryCache.Set(chatKey, content, TimeSpan.FromMinutes(60));//60分钟后过期
 
 
 
@@ -154,7 +153,7 @@ namespace chat_gpt_api.Controllers
                             
                             res = await openAiService.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest
                             {
-                                Messages = msgs,
+                                Messages = content,
                                 Model = Models.ChatGpt3_5Turbo,
                                 MaxTokens = maxToken,
                                 Temperature = temperature
@@ -180,6 +179,13 @@ namespace chat_gpt_api.Controllers
                             {
                                 sendMsg = RegHelper.ReplaceStartWith(sendMsg, '?');
                                 sendMsg = RegHelper.ReplaceStartWith(sendMsg, '\n');
+                            }
+
+                            //添加AI回答记录
+                            if(!string.IsNullOrEmpty(sendMsg))
+                            {
+                                content.Add(ChatMessage.FromAssistant(sendMsg));
+                                memoryCache.Set(chatKey, content, TimeSpan.FromMinutes(60));//60分钟后过期
                             }
 
                         }
