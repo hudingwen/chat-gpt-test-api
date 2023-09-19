@@ -116,18 +116,21 @@ namespace chat_gpt_api.Controllers
                         {
                             pro = "你好!";
                         }
-                        Console.WriteLine(pro); 
-                       
+                        Console.WriteLine(pro);
                         var chatKey = $"{info.group_id}-{info.user_id}";
+
+                        if (pro.Contains("清空对话"))
+                        {
+                            memoryCache.Remove(chatKey);
+                            await Task.Run(async () => { await SendQQMessage("您的所有对话已清空"); });
+                            return;
+                        }
+
+                       
 
 
                         List<ChatMessage> content;
-                        if(memoryCache.TryGetValue<List<ChatMessage>>(chatKey, out content))
-                        {
-                            //添加用户回答
-                            content.Add(ChatMessage.FromUser(pro));
-                        }
-                        else
+                        if(!memoryCache.TryGetValue<List<ChatMessage>>(chatKey, out content))
                         {
                             //系统角色初始化
                             content = new List<ChatMessage>
@@ -135,6 +138,8 @@ namespace chat_gpt_api.Controllers
                                 ChatMessage.FromSystem(keyword)
                             };
                         }
+                        //添加用户问答
+                        content.Add(ChatMessage.FromUser(pro));
 
                         memoryCache.Set(chatKey, content, TimeSpan.FromMinutes(60));//60分钟后过期
 
